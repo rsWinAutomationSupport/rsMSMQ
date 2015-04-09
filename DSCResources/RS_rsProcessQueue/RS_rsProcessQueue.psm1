@@ -32,7 +32,7 @@ Set-TargetResource {
     $msg = Get-MsmqQueue -Name $queueName | Receive-MsmqQueue -Count 1 -RetrieveBody
     $msg = $msg.Body | ConvertFrom-Json
     $nodeRecord = 
-    @"
+@"
 {
 'NodeName' : "$($msg.NodeName)",
 'uuid' : "$($msg.uuid)",
