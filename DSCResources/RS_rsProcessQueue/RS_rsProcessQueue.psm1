@@ -1,7 +1,7 @@
 ﻿Get-TargetResource {
   param (
     [parameter(Mandatory = $true)][string]$queueName,
-    [uint32]$scavengeTime
+    [int]$scavengeTime
 
   )
   return {
@@ -14,7 +14,7 @@
 Test-TargetResource {
   param (
     [parameter(Mandatory = $true)][string]$queueName,
-    [uint32]$scavengeTime
+    [int]$scavengeTime
   )
   if( (Get-MsmqQueue -Name $queueName).MessageCount -ne 0 ){
     return $false
@@ -25,7 +25,7 @@ Test-TargetResource {
 Set-TargetResource {
   param (
     [parameter(Mandatory = $true)][string]$queueName,
-    [uint32]$scavengeTime
+    [int]$scavengeTime
   )
   $d = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'secrets.json') -Raw | ConvertFrom-Json
   do {
