@@ -1,4 +1,4 @@
-﻿Get-TargetResource {
+﻿Function Get-TargetResource {
   param (
     [parameter(Mandatory = $true)][string]$queueName,
     [System.UInt32]$scavengeTime
@@ -11,7 +11,7 @@
   }
 }
 
-Test-TargetResource {
+Function Test-TargetResource {
   param (
     [parameter(Mandatory = $true)][string]$queueName,
     [System.UInt32]$scavengeTime
@@ -22,7 +22,7 @@ Test-TargetResource {
   else{ return $true }
 }
 
-Set-TargetResource {
+Function Set-TargetResource {
   param (
     [parameter(Mandatory = $true)][string]$queueName,
     [System.UInt32]$scavengeTime
