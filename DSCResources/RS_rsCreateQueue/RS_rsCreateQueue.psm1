@@ -5,8 +5,8 @@
     )
     return @{
         "QueueName" = $QueueName
-        "Ensure" = $(if((Get-MsmqQueue -Name $QueueName).count){return 'Present'}else {return 'Absent'})
-    }
+        "Ensure" = if((Get-MsmqQueue -Name $QueueName).count){'Present'}else {'Absent'}
+}
   
 }
 
