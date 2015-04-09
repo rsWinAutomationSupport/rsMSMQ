@@ -32,7 +32,7 @@ Function Set-TargetResource {
     $msg = Get-MsmqQueue -Name $queueName | Receive-MsmqQueue -Count 1 -RetrieveBody
     $msg = $msg.Body | ConvertFrom-Json
     $nodeRecord = 
-@"
+    @"
 {
 'NodeName' : "$($msg.NodeName)",
 'uuid' : "$($msg.uuid)",
@@ -42,6 +42,7 @@ Function Set-TargetResource {
 "@ | ConvertFrom-Json
 
     if($d.Shared_key -eq $msg.shared_key) {
+      $timeStamp = Get-Date
       $nodesJson = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Raw | ConvertFrom-Json
       if($nodesJson.Nodes.uuid -notcontains $msg.uuid) {
         $nodesJson.Nodes += $nodeRecord
