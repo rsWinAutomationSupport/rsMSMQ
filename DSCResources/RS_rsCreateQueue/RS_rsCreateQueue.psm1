@@ -1,35 +1,44 @@
-﻿Get-TargetResource {
-  param (
-    [parameter(Mandatory = $true)][string]$queueName
-  )
+﻿function Get-TargetResource {
+    param (
+        [parameter(Mandatory = $true)][string]$QueueName,
+        [ValidateSet("Absent","Present")][string]$Ensure = 'Present'
+    )
+    return @{
+        "QueueName" = $QueueName
+        "Ensure" = $(if((Get-MsmqQueue -Name $QueueName).count){return 'Present'}else {return 'Absent'})
+    }
   
 }
 
-Test-TargetResource {
-  param (
-    [parameter(Mandatory = $true)][string]$queueName
-  )
-  if( (Get-MsmqQueue -Name $queueName).MessageCount -ne 0 ){
-    return $false
-  }
-  else{ return $true }
+function Test-TargetResource {
+    param (
+        [parameter(Mandatory = $true)][string]$QueueName,
+        [ValidateSet("Absent","Present")][string]$Ensure = 'Present'
+    )
+    if( $Ensure -eq 'Present') {
+        if( (Get-MsmqQueue -Name $QueueName).count -eq 0 ){
+            return $false
+        }
+        else{ return $true }
+    }
+    else {
+        if( (Get-MsmqQueue -Name $QueueName).count -ne 0 ){
+            return $false
+        }
+        else{ return $true }
+    }
 }
 
-Set-TargetResource {
-  param (
-    [parameter(Mandatory = $true)][string]$queueName
-  )
-
+function Set-TargetResource {
+    param (
+        [parameter(Mandatory = $true)][string]$QueueName,
+        [ValidateSet("Absent","Present")][string]$Ensure = 'Present'
+    )
+    if( $Ensure -eq 'Present') {
+        New-MsmqQueue -Name $QueueName -Verbose | Set-MsmqQueueACL -UserName "BUILTIN\Administrators" -Allow FullControl -Verbose
+    }
+    else {
+        Get-MsmqQueue -Name $QueueName | Remove-MsmqQueue -Verbose
+    }
 }
-
-<#
-  do {
-  $msg = Get-MsmqQueue -Name 'rsdsc' | Receive-MsmqQueue -Count 1 -RetrieveBody
-  $msg = $msg.Body | ConvertFrom-Json
-
-  $store = Get-Item Cert:\LocalMachine\Root
-  $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]"ReadWrite")
-  $store.Add( $(New-Object System.Security.Cryptography.X509Certificates.X509Certificate -ArgumentList @(,[System.Convert]::fromBase64String($msg.PublicCert))) )
-  $store.Close()
-  } while ( (Get-MsmqQueue -Name 'rsdsc').MessageCount -ne 0 )
-#>
+Export-ModuleMember -Function *-TargetResource

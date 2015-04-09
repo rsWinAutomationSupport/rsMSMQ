@@ -1,0 +1,6 @@
+[ClassVersion("1.0.0"), FriendlyName("rsCreateQueue")]
+class RS_rsCreateQueue : OMI_BaseResource
+{
+	[key] string QueueName;
+	[write,ValueMap{"Present", "Absent"},Values{"Present", "Absent"}] string Ensure;
+};
