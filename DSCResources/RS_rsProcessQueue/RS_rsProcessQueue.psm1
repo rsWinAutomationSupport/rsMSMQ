@@ -36,7 +36,7 @@ Function Set-TargetResource {
     @"
 {
 'NodeName' : "$($msg.Name)",
-'GUID' : "$($msg.GUID)",
+'uuid' : "$($msg.uuid)",
 'dsc_config' : "$($msg.dsc_config)",
 'timeStamp' : "$timeStamp"
 }
@@ -44,19 +44,19 @@ Function Set-TargetResource {
 
     if($d.Shared_key -eq $msg.shared_key) {
       $nodesJson = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Raw | ConvertFrom-Json
-      if($nodesJson.Nodes.GUID -notcontains $msg.GUID) {
+      if($nodesJson.Nodes.uuid -notcontains $msg.uuid) {
         $nodesJson.Nodes += $nodeRecord
         Set-Content -Path $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Value ($nodesJson | ConvertTo-Json)
       }
       else {
-        $currentNode = $nodesJson.Nodes | ? uuid -eq $($msg.GUID)
+        $currentNode = $nodesJson.Nodes | ? uuid -eq $($msg.uuid)
         foreach($property in $currentNode.PSObject.Properties) {
           if($msg.PSObject.Properties.Name -contains $property.Name) {
 
-            ($nodesJson.Nodes  | ? uuid -eq $($msg.GUID)).$($property.Name) = $msg.$($property.Name)
+            ($nodesJson.Nodes  | ? uuid -eq $($msg.uuid)).$($property.Name) = $msg.$($property.Name)
 
           }
-          ($nodesJson.Nodes  | ? uuid -eq $($msg.GUID)).timeStamp = "$timeStamp"
+          ($nodesJson.Nodes  | ? uuid -eq $($msg.uuid)).timeStamp = "$timeStamp"
           Set-Content -Path $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Value ($nodesJson | ConvertTo-Json)
         }
       }
