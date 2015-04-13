@@ -1,4 +1,17 @@
-﻿Function Get-TargetResource {
+﻿Function clearStaleRecords {
+  param (
+    [UInt32]$scavengeTime
+  )
+    ### Scavenge stale records
+    $nodesJson = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') | ConvertFrom-Json
+    foreach($currentNode in $nodesJson.Nodes) {
+      if($currentNode.timeStamp -le (Get-Date).AddDays(-$scavengeTime)) {
+        $nodesJson.Nodes = $nodesJson.Nodes -notmatch $currentNode
+      }
+    }
+    Set-Content -Path $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Value ($nodesJson | ConvertTo-Json) 
+}
+Function Get-TargetResource {
   param (
     [parameter(Mandatory = $true)][string]$queueName,
     [System.UInt32]$scavengeTime
@@ -19,7 +32,11 @@ Function Test-TargetResource {
   if( (Get-MsmqQueue -Name $queueName).MessageCount -ne 0 ){
     return $false
   }
-  else{ return $true }
+  else{
+    ### Scavenge stale records
+    clearStaleRecords -scavengeTime $scavengeTime
+    return $true 
+  }
 }
 
 Function Set-TargetResource {
@@ -72,13 +89,7 @@ Function Set-TargetResource {
   } while ( (Get-MsmqQueue -Name $queueName).MessageCount -ne 0 )
   
   ### Scavenge stale records
-  $nodesJson = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') | ConvertFrom-Json
-  foreach($currentNode in $nodesJson.Nodes) {
-    if($currentNode.timeStamp -le (Get-Date).AddDays(-$scavengeTime)) {
-      $nodesJson.Nodes = $nodesJson.Nodes -notmatch $currentNode
-    }
-  }
-  Set-Content -Path $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Value ($nodesJson | ConvertTo-Json)
+  clearStaleRecords -scavengeTime $scavengeTime
 
 }
 
