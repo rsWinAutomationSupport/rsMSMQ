@@ -3,12 +3,17 @@
         [parameter(Mandatory = $true)][string]$QueueName,
         [string]$TriggerName,
         [string]$RuleName,
+        [string]$RuleAction,
         [string]$RuleCondition,
         [ValidateSet("Absent","Present")][string]$Ensure = 'Present'
     )
     return @{
         "QueueName" = $QueueName
-        "Ensure" = if((Get-MsmqQueue -Name $QueueName).count){'Present'}else {'Absent'}
+        "TriggerName" = $TriggerName
+        "RuleName" = $RuleName
+        "RuleAction" = $RuleAction
+        "RuleCondition" = $RuleCondition
+        "Ensure" = $Ensure
 }
   
 }
