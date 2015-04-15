@@ -4,14 +4,12 @@
     [ValidateNotNullOrEmpty()]
     [string]$Name,
     [string]$DestinationQueue,
-    [string]$MessageDestination,
     [string]$MessageLabel,
     [hashtable]$MessageBody,
     [string]$Ensure
   )
   return @{
     'DestinationQueue' = $DestinationQueue
-    'MessageDestination' = $MessageDestination
     'MessageLabel' = $MessageLabel
     'MessageBody' = $MessageBody
     'Name' = $Name
@@ -25,7 +23,6 @@ Function Test-TargetResource {
     [ValidateNotNullOrEmpty()]
     [string]$Name,
     [string]$DestinationQueue,
-    [string]$MessageDestination,
     [string]$MessageLabel,
     [hashtable]$MessageBody,
     [string]$Ensure
@@ -39,7 +36,6 @@ Function Set-TargetResource {
     [ValidateNotNullOrEmpty()]
     [string]$Name,
     [string]$DestinationQueue,
-    [string]$MessageDestination,
     [string]$MessageLabel,
     [hashtable]$MessageBody,
     [string]$Ensure
