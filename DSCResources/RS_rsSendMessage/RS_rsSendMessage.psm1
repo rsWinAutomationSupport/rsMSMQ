@@ -40,6 +40,7 @@ Function Set-TargetResource {
     [Microsoft.Management.Infrastructure.CimInstance[]]$MessageBody,
     [string]$Ensure
   )
+  $bootstrapinfo = Get-Content "C:\Windows\Temp\bootstrapinfo.json" -Raw | ConvertFrom-Json
   if($Ensure -eq 'Present') {
     [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
     $msg = New-Object System.Messaging.Message
