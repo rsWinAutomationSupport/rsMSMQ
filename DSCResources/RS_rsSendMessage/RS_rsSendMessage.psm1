@@ -5,7 +5,7 @@
     [string]$Name,
     [string]$DestinationQueue,
     [string]$MessageLabel,
-    [hashtable]$MessageBody,
+    [Microsoft.Management.Infrastructure.CimInstance[]]$MessageBody,
     [string]$Ensure
   )
   return @{
@@ -24,7 +24,7 @@ Function Test-TargetResource {
     [string]$Name,
     [string]$DestinationQueue,
     [string]$MessageLabel,
-    [hashtable]$MessageBody,
+    [Microsoft.Management.Infrastructure.CimInstance[]]$MessageBody,
     [string]$Ensure
   )
   return $false
@@ -37,7 +37,7 @@ Function Set-TargetResource {
     [string]$Name,
     [string]$DestinationQueue,
     [string]$MessageLabel,
-    [hashtable]$MessageBody,
+    [Microsoft.Management.Infrastructure.CimInstance[]]$MessageBody,
     [string]$Ensure
   )
   if($Ensure -eq 'Present') {
