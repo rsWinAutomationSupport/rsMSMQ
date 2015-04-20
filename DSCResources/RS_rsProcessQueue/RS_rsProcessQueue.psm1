@@ -17,10 +17,9 @@ Function Get-TargetResource {
     [System.UInt32]$scavengeTime
 
   )
-  return {
-    @{ 'queueName' = $queueName;
-      'scavengeTime' = $scavengeTime
-    }
+  return @{ 
+        queueName = $queueName
+        scavengeTime = $scavengeTime
   }
 }
 
