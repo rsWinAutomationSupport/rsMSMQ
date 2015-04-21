@@ -48,7 +48,7 @@ Function Set-TargetResource {
          'PublicCert' = "$([System.Convert]::ToBase64String($publicCert))"
       } | ConvertTo-Json
       $msg = New-Object System.Messaging.Message
-      $msg.Label = 'execute'
+      $msg.Label = 'status'
       $msg.Body = $msgbody
       $queueName = "FormatName:DIRECT=HTTPS://$($bootstrapinfo.Name)/msmq/private$/rsdsc"
       $queue = New-Object System.Messaging.MessageQueue ($queueName, $False, $False)
