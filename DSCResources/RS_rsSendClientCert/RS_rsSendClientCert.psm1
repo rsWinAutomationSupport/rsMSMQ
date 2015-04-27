@@ -5,13 +5,15 @@
       [string]$Name,
       [string]$DestinationQueue,
       [string]$MessageLabel,
-      [string]$Ensure
+      [string]$Ensure,
+      [string]$NodeInfo
    )
    return @{
       'DestinationQueue' = $DestinationQueue
       'MessageLabel' = $MessageLabel
       'Name' = $Name
       'Ensure' = $Ensure
+      'NodeInfo' = $NodeInfo
    }
 }
 
@@ -34,11 +36,11 @@ Function Set-TargetResource {
       [string]$Name,
       [string]$DestinationQueue,
       [string]$MessageLabel,
-      [string]$Ensure
+      [string]$Ensure,
+      [string]$NodeInfo
    )
-   $bootstrapinfo = Get-Content "C:\Windows\Temp\bootstrapinfo.json" -Raw | ConvertFrom-Json
    if($Ensure -eq 'Present') {
-      $bootstrapinfo = Get-Content "C:\Windows\Temp\bootstrapinfo.json" -Raw | ConvertFrom-Json
+      $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
       [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
       $publicCert = ((Get-ChildItem Cert:\LocalMachine\Root | ? Subject -eq "CN=$env:COMPUTERNAME`_enc").RawData)
       $msgbody = @{'Name' = "$env:COMPUTERNAME"
@@ -48,10 +50,9 @@ Function Set-TargetResource {
          'PublicCert' = "$([System.Convert]::ToBase64String($publicCert))"
       } | ConvertTo-Json
       $msg = New-Object System.Messaging.Message
-      $msg.Label = 'status'
+      $msg.Label = $MessageLabel
       $msg.Body = $msgbody
-      $queueName = "FormatName:DIRECT=HTTPS://$($bootstrapinfo.Name)/msmq/private$/rsdsc"
-      $queue = New-Object System.Messaging.MessageQueue ($queueName, $False, $False)
+      $queue = New-Object System.Messaging.MessageQueue ($DestinationQueue, $False, $False)
       $queue.Send($msg)
    }
    else {
