@@ -24,7 +24,8 @@ Function Test-TargetResource {
       [string]$Name,
       [string]$DestinationQueue,
       [string]$MessageLabel,
-      [string]$Ensure
+      [string]$Ensure,
+      [string]$NodeInfo
    )
    return $false
 }
