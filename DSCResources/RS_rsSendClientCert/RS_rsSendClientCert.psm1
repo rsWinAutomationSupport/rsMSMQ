@@ -45,7 +45,7 @@ Function Set-TargetResource {
       [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
       $publicCert = ((Get-ChildItem Cert:\LocalMachine\Root | ? Subject -eq "CN=$env:COMPUTERNAME`_enc").RawData)
       $msgbody = @{'Name' = "$env:COMPUTERNAME"
-         'uuid' = $($bootstrapinfo.MyGuid)
+         'uuid' = $($bootstrapinfo.uuid)
          'dsc_config' = $($bootstrapinfo.dsc_config)
          'shared_key' = $($bootstrapinfo.shared_key)
          'PublicCert' = "$([System.Convert]::ToBase64String($publicCert))"
