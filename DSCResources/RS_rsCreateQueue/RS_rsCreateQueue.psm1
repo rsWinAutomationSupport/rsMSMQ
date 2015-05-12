@@ -16,16 +16,20 @@ function Test-TargetResource {
         [ValidateSet("Absent","Present")][string]$Ensure = 'Present'
     )
     if( $Ensure -eq 'Present') {
-        if( (Get-MsmqQueue -Name $QueueName).count -eq 0 ){
-            return $false
+        try{
+            if( (Get-MsmqQueue -Name $QueueName).count -ge 0 ){
+                return $true
+            }
         }
-        else{ return $true }
+        catch { return $false }
     }
     else {
-        if( (Get-MsmqQueue -Name $QueueName).count -ne 0 ){
-            return $false
+        try{
+            if( (Get-MsmqQueue -Name $QueueName).count -ge 0 ){
+                return $false
+            }
         }
-        else{ return $true }
+        catch { return $true }
     }
 }
 
