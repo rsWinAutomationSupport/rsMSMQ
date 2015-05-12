@@ -52,7 +52,7 @@ Function Set-TargetResource {
         $timeStamp = Get-Date
         $msg = $q.Receive()
         $msg = $msg.Body | ConvertFrom-Json
-        $nodeRecord = @{'NodeName' = "$($msg.Name)";'uuid' = "$($msg.uuid)";'dsc_config' = "$($msg.dsc_config)";'timeStamp' = "$timeStamp"} | ConvertFrom-Json
+        $nodeRecord = @{'NodeName' = "$($msg.Name)";'uuid' = "$($msg.uuid)";'dsc_config' = "$($msg.dsc_config)";'timeStamp' = "$timeStamp"}
 
         if($d.Shared_key -eq $msg.shared_key) {
             $nodesJson = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Raw | ConvertFrom-Json
