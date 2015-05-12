@@ -3,7 +3,7 @@ Function clearStaleRecords {
         [UInt32]$scavengeTime
     )
     ### Scavenge stale records
-    $nodesJson = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') | ConvertFrom-Json
+    $nodesJson = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Raw | ConvertFrom-Json
     foreach($currentNode in $nodesJson.Nodes) {
         if($currentNode.timeStamp -le (Get-Date).AddDays(-$scavengeTime)) {
             $nodesJson.Nodes = $nodesJson.Nodes -notmatch $currentNode
