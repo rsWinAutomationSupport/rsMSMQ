@@ -48,6 +48,7 @@ Function Set-TargetResource {
     $d = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'secrets.json') -Raw | ConvertFrom-Json
     [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
     $q = New-Object System.Messaging.MessageQueue ".\private$\$queueName"
+    $q.Formatter.TargetTypeNames = ,"System.String"    
     do {
         $timeStamp = Get-Date
         $msg = $q.Receive()
