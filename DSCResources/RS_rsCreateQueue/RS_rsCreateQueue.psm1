@@ -1,12 +1,13 @@
-﻿function Get-TargetResource {
+function Get-TargetResource {
     param (
         [parameter(Mandatory = $true)][string]$QueueName,
         [ValidateSet("Absent","Present")][string]$Ensure = 'Present'
     )
+    [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
     return @{
         "QueueName" = $QueueName
-        "Ensure" = if((Get-MsmqQueue -Name $QueueName).count){'Present'}else {'Absent'}
-}
+        "Ensure" = if([System.Messaging.MessageQueue]::Exists(".\private$\$QueueName")){'Present'}else {'Absent'}
+    }
   
 }
 
@@ -15,21 +16,22 @@ function Test-TargetResource {
         [parameter(Mandatory = $true)][string]$QueueName,
         [ValidateSet("Absent","Present")][string]$Ensure = 'Present'
     )
+    [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
     if( $Ensure -eq 'Present') {
-        try{
-            if( (Get-MsmqQueue -Name $QueueName).count -ge 0 ){
-                return $true
-            }
+        if( [System.Messaging.MessageQueue]::Exists(".\private$\$QueueName") ){
+            return $true
         }
-        catch { return $false }
+        else{
+            return $false
+        }
     }
     else {
-        try{
-            if( (Get-MsmqQueue -Name $QueueName).count -ge 0 ){
-                return $false
-            }
+        if( [System.Messaging.MessageQueue]::Exists(".\private$\$QueueName")){
+            return $false
         }
-        catch { return $true }
+        else{
+            return $true
+        }
     }
 }
 
@@ -38,11 +40,12 @@ function Set-TargetResource {
         [parameter(Mandatory = $true)][string]$QueueName,
         [ValidateSet("Absent","Present")][string]$Ensure = 'Present'
     )
+    [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
     if( $Ensure -eq 'Present') {
         New-MsmqQueue -Name $QueueName -Verbose | Set-MsmqQueueACL -UserName "BUILTIN\Administrators" -Allow FullControl -Verbose
     }
     else {
-        Get-MsmqQueue -Name $QueueName | Remove-MsmqQueue -Verbose
+        [System.Messaging.MessageQueue]::Delete(".\private$\$QueueName")
     }
 }
 Export-ModuleMember -Function *-TargetResource
