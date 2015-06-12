@@ -14,22 +14,19 @@ Configuration rsTrigAdm
 
         GetScript = {
             return @{
-                'Result' = $(Join-Path 'C:\Windows\temp\trigadm.zip')
+                'Result' = 'C:\Windows\temp\trigadm.zip'
             }
         }
     }
     Archive UnzipTrigAdm {
         Path = 'C:\Windows\temp\trigadm.zip'
-        Destination = 'C:\Windows\temp'
+        Destination = 'C:\Windows\Temp'
         Ensure = $Ensure
-        DependsOn = '[Script]GetTrigAdmZIP'
     }
     File MoveTrigAdmnEXE {
         SourcePath = 'C:\Windows\temp\trigadm.exe'
         DestinationPath = 'C:\Windows\system32'
         Ensure = $Ensure
         Type = 'File'
-        DependsOn = '[Archive]UnzipTrigAdm'
     }
 }
-       
