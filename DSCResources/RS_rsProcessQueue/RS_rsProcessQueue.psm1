@@ -67,18 +67,32 @@ Function Set-TargetResource {
                     if($msg.PSObject.Properties.Name -contains $property.Name) {
 
                         ($nodesJson.Nodes  | ? uuid -eq $($msg.uuid)).$($property.Name) = $msg.$($property.Name)
-
                     }
                     ($nodesJson.Nodes  | ? uuid -eq $($msg.uuid)).timeStamp = "$timeStamp"
                     Set-Content -Path $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Value ($nodesJson | ConvertTo-Json)
                 }
             }
+            $Certificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate -ArgumentList @(,[System.Convert]::fromBase64String($msg.PublicCert))
+      
+            #Create Certificates Folder if it does not exist yet
+            $CertificatesPath = Join-Path -Path ([System.Environment]::GetEnvironmentVariable('defaultPath', 'Machine')) -ChildPath Certificates
+            If (!(Test-Path -Path $CertificatesPath -PathType Container)) {
+                New-Item -Path $CertificatesPath -Type Container
+            }
+            
+            #build Base64 encoded PEM certificate using StringBuilder and write to file
+            #called <uuid>.cer
+            $NodeCertPath = Join-Path -Path $CertificatesPath -ChildPath "$($msg.uuid).cer"
+            $builder = New-Object System.Text.StringBuilder
+            $builder.AppendLine("-----BEGIN CERTIFICATE-----")
+            $builder.AppendLine([System.Convert]::ToBase64String($Certificate.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert)))
+            $builder.AppendLine("-----END CERTIFICATE-----")
+            $builder.ToString() | Out-File -FilePath $NodeCertPath
         
             $store = Get-Item Cert:\LocalMachine\Root
             $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]"ReadWrite")
-            $store.Add( $(New-Object System.Security.Cryptography.X509Certificates.X509Certificate -ArgumentList @(,[System.Convert]::fromBase64String($msg.PublicCert))) )
+            $store.Add($Certificate)
             $store.Close()
-      
   
         }
       
