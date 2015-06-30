@@ -43,12 +43,13 @@ Function Set-TargetResource {
    if($Ensure -eq 'Present') {
       $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
       [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
-      $publicCert = ((Get-ChildItem Cert:\LocalMachine\Root | ? Subject -eq "CN=$env:COMPUTERNAME`_enc").RawData)
+      $publicCert = ((Get-ChildItem Cert:\LocalMachine\My | ? Subject -eq "CN=$env:COMPUTERNAME`_enc").RawData)
       $msgbody = @{'Name' = "$env:COMPUTERNAME"
          'uuid' = $($bootstrapinfo.uuid)
          'dsc_config' = $($bootstrapinfo.dsc_config)
          'shared_key' = $($bootstrapinfo.shared_key)
          'PublicCert' = "$([System.Convert]::ToBase64String($publicCert))"
+         'network_adapters' = $($bootstrapinfo.network_adapters)
       } | ConvertTo-Json
       $msg = New-Object System.Messaging.Message
       $msg.Label = $MessageLabel
