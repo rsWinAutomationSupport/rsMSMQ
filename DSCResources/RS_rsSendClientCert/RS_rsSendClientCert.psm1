@@ -49,7 +49,7 @@ Function Set-TargetResource {
          'dsc_config' = $($bootstrapinfo.dsc_config)
          'shared_key' = $($bootstrapinfo.shared_key)
          'PublicCert' = "$([System.Convert]::ToBase64String($publicCert))"
-         'network_adapters' = $($bootstrapinfo.network_adapters)
+         'NetworkAdapters' = $($bootstrapinfo.NetworkAdapters)
       } | ConvertTo-Json
       $msg = New-Object System.Messaging.Message
       $msg.Label = $MessageLabel
