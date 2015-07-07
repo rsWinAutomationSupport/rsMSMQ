@@ -6,7 +6,8 @@
       [string]$DestinationQueue,
       [string]$MessageLabel,
       [string]$Ensure,
-      [string]$NodeInfo
+      [string]$NodeInfo,
+      [string]$RefreshInterval = '360'
    )
    return @{
       'DestinationQueue' = $DestinationQueue
@@ -14,6 +15,7 @@
       'Name' = $Name
       'Ensure' = $Ensure
       'NodeInfo' = $NodeInfo
+      'RefreshInterval' = $RefreshInterval
    }
 }
 
@@ -25,9 +27,25 @@ Function Test-TargetResource {
       [string]$DestinationQueue,
       [string]$MessageLabel,
       [string]$Ensure,
-      [string]$NodeInfo
+      [string]$NodeInfo,
+      [string]$RefreshInterval = '360'
    )
-   return $false
+   $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
+
+   #Check if client has ever sent MSMQ message to PullServer post-bootstrap
+   if(!($bootstrapinfo.LastRefresh)){return $false}
+
+   #Check if RefreshInterval has expired
+   if((New-TimeSpan $bootstrapinfo.LastRefresh | select -ExpandProperty Minutes) -gt $RefreshInterval){return $false}
+   
+   #Check if PullServer has Client MOF available
+   $uri = (("https://",$bootstrapinfo.PullServerName,":",$bootstrapinfo.PullServerPort,"/PSDSCPullServer.svc/Action(ConfigurationId='",$bootstrapinfo.uuid,"')/ConfigurationContent") -join '')
+   try{
+        if((Invoke-WebRequest $uri).StatusCode -ne '200'){return $false}
+    }
+   catch{return $false}
+   
+   return $true  
 }
 
 Function Set-TargetResource {
@@ -38,7 +56,8 @@ Function Set-TargetResource {
       [string]$DestinationQueue,
       [string]$MessageLabel,
       [string]$Ensure,
-      [string]$NodeInfo
+      [string]$NodeInfo,
+      [string]$RefreshInterval = '360'
    )
    if($Ensure -eq 'Present') {
       $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
@@ -56,6 +75,11 @@ Function Set-TargetResource {
       $msg.Body = $msgbody
       $queue = New-Object System.Messaging.MessageQueue ($DestinationQueue, $False, $False)
       $queue.Send($msg)
+
+      #Update timestamp in nodeinfo.json
+      $bootstrapinfo.PSObject.Properties.Remove('LastRefresh')
+      $bootstrapinfo | Add-Member -NotePropertyName LastRefresh -NotePropertyValue (Get-Date).DateTime
+      Set-Content -Path $NodeInfo -Value ($bootstrapinfo | ConvertTo-Json -Depth 2)
    }
    else {
       Write-Verbose "Not Sending Messages"
