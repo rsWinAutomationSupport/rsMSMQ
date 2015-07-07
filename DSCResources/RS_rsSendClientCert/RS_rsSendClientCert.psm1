@@ -7,7 +7,7 @@
       [string]$MessageLabel,
       [string]$Ensure,
       [string]$NodeInfo,
-      [string]$RefreshInterval = '360'
+      [string]$RefreshInterval = "360"
    )
    return @{
       'DestinationQueue' = $DestinationQueue
@@ -28,7 +28,7 @@ Function Test-TargetResource {
       [string]$MessageLabel,
       [string]$Ensure,
       [string]$NodeInfo,
-      [string]$RefreshInterval = '360'
+      [string]$RefreshInterval = "360"
    )
    $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
 
@@ -57,8 +57,10 @@ Function Set-TargetResource {
       [string]$MessageLabel,
       [string]$Ensure,
       [string]$NodeInfo,
-      [string]$RefreshInterval = '360'
+      [string]$RefreshInterval = "360"
    )
+   $PSBoundParameters.Remove($RefreshInterval)
+
    if($Ensure -eq 'Present') {
       $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
       [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
