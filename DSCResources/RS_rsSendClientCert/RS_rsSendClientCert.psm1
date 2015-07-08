@@ -44,20 +44,32 @@ Function Test-TargetResource {
    $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
 
    if($dsc_config){
-        if($dsc_config -ne $bootstrapinfo.dsc_config) {return $false}
+        if($dsc_config -ne $bootstrapinfo.dsc_config){
+            Write-Verbose -Message "dsc_config has changed. Test failed."
+            return $false
+        }
    }
 
    if($shared_key){
-        if($shared_key -ne $bootstrapinfo.shared_key) {return $false}
+        if($shared_key -ne $bootstrapinfo.shared_key){
+            Write-Verbose -Message "shared_key has changed. Test failed."
+            return $false
+        }
    }
 
    
    #Check if PullServer has Client MOF available
    $uri = (("https://",$bootstrapinfo.PullServerName,":",$bootstrapinfo.PullServerPort,"/PSDSCPullServer.svc/Action(ConfigurationId='",$bootstrapinfo.uuid,"')/ConfigurationContent") -join '')
    try{
-        if((Invoke-WebRequest $uri).StatusCode -ne '200'){return $false}
+        if((Invoke-WebRequest $uri).StatusCode -ne '200'){
+            Write-Verbose -Message "MOF retrieval resulted in non-200 HTTP status code. Test failed."
+            return $false
+        }
     }
-   catch{return $false}
+   catch{
+       Write-Verbose -Message "Web request failed. Test failed."
+       return $false
+   }
    
 
    return $true  
@@ -132,6 +144,7 @@ Function Set-TargetResource {
       $msg.Label = $MessageLabel
       $msg.Body = $msgbody
       $queue = New-Object System.Messaging.MessageQueue ($DestinationQueue, $False, $False)
+      Write-Verbose -Message "Sending MSMQ message to $DestinationQueue"
       $queue.Send($msg)
 
       
