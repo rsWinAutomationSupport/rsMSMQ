@@ -55,7 +55,33 @@ Function Set-TargetResource {
    $PSBoundParameters.Remove($RefreshInterval)
 
    if($Ensure -eq 'Present') {
-      $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
+
+
+   #Ensure NIC info is updated in message
+   $network_adapters =  @{}
+
+    $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
+      
+    $Interfaces = Get-NetAdapter | Select -ExpandProperty ifAlias
+
+    foreach($NIC in $interfaces){
+
+            $IPv4 = Get-NetIPAddress | Where-Object {$_.InterfaceAlias -eq $NIC -and $_.AddressFamily -eq 'IPv4'} | Select -ExpandProperty IPAddress
+            $IPv6 = Get-NetIPAddress | Where-Object {$_.InterfaceAlias -eq $NIC -and $_.AddressFamily -eq 'IPv6'} | Select -ExpandProperty IPAddress
+
+            $Hash = @{"IPv4" = $IPv4;
+                      "IPv6" = $IPv6}
+    
+            $network_adapters.Add($NIC,$Hash)
+
+    }
+
+    $bootstrapinfo.NetworkAdapters = $network_adapters
+
+    Set-Content -Path $NodeInfo -Value ($bootstrapinfo | ConvertTo-Json -Depth 2)
+
+
+    
       [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
       $publicCert = ((Get-ChildItem Cert:\LocalMachine\My | ? Subject -eq "CN=$env:COMPUTERNAME`_enc").RawData)
       $msgbody = @{'Name' = "$env:COMPUTERNAME"
@@ -71,10 +97,8 @@ Function Set-TargetResource {
       $queue = New-Object System.Messaging.MessageQueue ($DestinationQueue, $False, $False)
       $queue.Send($msg)
 
-      #Update timestamp in nodeinfo.json
-      $bootstrapinfo.PSObject.Properties.Remove('LastRefresh')
-      $bootstrapinfo | Add-Member -NotePropertyName LastRefresh -NotePropertyValue (Get-Date).DateTime
-      Set-Content -Path $NodeInfo -Value ($bootstrapinfo | ConvertTo-Json -Depth 2)
+      
+      
    }
    else {
       Write-Verbose "Not Sending Messages"
