@@ -6,14 +6,25 @@
       [string]$DestinationQueue,
       [string]$MessageLabel,
       [string]$Ensure,
-      [string]$NodeInfo
+      [string]$NodeInfo,
+      [string]$dsc_config,
+      [string]$shared_key
       )
+
+      $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
+
+      if!($dsc_config){ $dsc_config -eq $bootstrapinfo.dsc_config }
+      if!($shared_key){ $shared_key -eq $bootstrapinfo.shared_key }
+
+
    return @{
       'DestinationQueue' = $DestinationQueue
       'MessageLabel' = $MessageLabel
       'Name' = $Name
       'Ensure' = $Ensure
       'NodeInfo' = $NodeInfo
+      'dsc_config' = $dsc_config
+      'shared_key' = $shared_key
       
    }
 }
@@ -26,9 +37,19 @@ Function Test-TargetResource {
       [string]$DestinationQueue,
       [string]$MessageLabel,
       [string]$Ensure,
-      [string]$NodeInfo
+      [string]$NodeInfo,
+      [string]$dsc_config,
+      [string]$shared_key
       )
    $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
+
+   if($dsc_config){
+        if($dsc_config -ne $bootstrapinfo.dsc_config) {return $false}
+   }
+
+   if($shared_key){
+        if($shared_key -ne $bootstrapinfo.shared_key) {return $false}
+   }
 
    
    #Check if PullServer has Client MOF available
@@ -50,17 +71,20 @@ Function Set-TargetResource {
       [string]$DestinationQueue,
       [string]$MessageLabel,
       [string]$Ensure,
-      [string]$NodeInfo
+      [string]$NodeInfo,
+      [string]$dsc_config,
+      [string]$shared_key
       )
-   $PSBoundParameters.Remove($RefreshInterval)
+   
 
    if($Ensure -eq 'Present') {
 
 
+   $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
+
+
    #Ensure NIC info is updated in message
    $network_adapters =  @{}
-
-    $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
       
     $Interfaces = Get-NetAdapter | Select -ExpandProperty ifAlias
 
@@ -76,7 +100,20 @@ Function Set-TargetResource {
 
     }
 
+
+    
     $bootstrapinfo.NetworkAdapters = $network_adapters
+
+    #update bootstrapinfo on disk
+   
+    
+    if($dsc_config){
+        $bootstrapinfo.dsc_config = $dsc_config
+   }
+
+   if($shared_key){
+        $bootstrapinfo.shared_key = $shared_key
+   }
 
     Set-Content -Path $NodeInfo -Value ($bootstrapinfo | ConvertTo-Json -Depth 2)
 
