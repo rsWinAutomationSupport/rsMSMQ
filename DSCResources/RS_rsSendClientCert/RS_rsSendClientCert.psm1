@@ -6,16 +6,15 @@
       [string]$DestinationQueue,
       [string]$MessageLabel,
       [string]$Ensure,
-      [string]$NodeInfo,
-      [string]$RefreshInterval = 360
-   )
+      [string]$NodeInfo
+      )
    return @{
       'DestinationQueue' = $DestinationQueue
       'MessageLabel' = $MessageLabel
       'Name' = $Name
       'Ensure' = $Ensure
       'NodeInfo' = $NodeInfo
-      'RefreshInterval' = $RefreshInterval
+      
    }
 }
 
@@ -27,16 +26,10 @@ Function Test-TargetResource {
       [string]$DestinationQueue,
       [string]$MessageLabel,
       [string]$Ensure,
-      [string]$NodeInfo,
-      [string]$RefreshInterval = 360
-   )
+      [string]$NodeInfo
+      )
    $bootstrapinfo = Get-Content $NodeInfo -Raw | ConvertFrom-Json
 
-   #Check if client has ever sent MSMQ message to PullServer post-bootstrap
-   if(!($bootstrapinfo.LastRefresh)){return $false}
-
-   #Check if RefreshInterval has expired
-   if((New-TimeSpan $bootstrapinfo.LastRefresh | select -ExpandProperty Minutes) -gt $RefreshInterval){return $false}
    
    #Check if PullServer has Client MOF available
    $uri = (("https://",$bootstrapinfo.PullServerName,":",$bootstrapinfo.PullServerPort,"/PSDSCPullServer.svc/Action(ConfigurationId='",$bootstrapinfo.uuid,"')/ConfigurationContent") -join '')
@@ -45,6 +38,7 @@ Function Test-TargetResource {
     }
    catch{return $false}
    
+
    return $true  
 }
 
@@ -56,9 +50,8 @@ Function Set-TargetResource {
       [string]$DestinationQueue,
       [string]$MessageLabel,
       [string]$Ensure,
-      [string]$NodeInfo,
-      [string]$RefreshInterval = 360
-   )
+      [string]$NodeInfo
+      )
    $PSBoundParameters.Remove($RefreshInterval)
 
    if($Ensure -eq 'Present') {
