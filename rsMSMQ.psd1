@@ -1,6 +1,6 @@
 @{
 # Version number of this module.
-ModuleVersion = '1.2'
+ModuleVersion = '2.0'
 
 # ID used to uniquely identify this module
 GUID = '7e97f750-b848-4e6b-a80b-85e808672bc3'
