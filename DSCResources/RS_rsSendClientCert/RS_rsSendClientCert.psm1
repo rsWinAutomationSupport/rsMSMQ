@@ -1,23 +1,20 @@
-﻿function Get-NodeInfo {
-$nodeinfo = Get-Content ([Environment]::GetEnvironmentVariable('nodeInfoPath','Machine').ToString()) -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
-if(!($nodeinfo)){ $nodeinfo = Get-Content 'C:\Windows\Temp\nodeinfo.json' -Raw | ConvertFrom-Json }
-return $nodeinfo
-}
-
-
-
-
+﻿
 Function Get-TargetResource {
    param (
-      [ValidateSet("Present","Absent")]
-      [string] $Ensure,
+      [Parameter(Mandatory)][string] $Name,
       [string] $DestinationQueue,
       [string] $MessageLabel = 'execute',
       [string] $dsc_config,
-      [string] $shared_key
+      [string] $shared_key,
+      [string] $nodeinfopath
       )
       
-      $nodeinfo = Get-NodeInfo
+      if($PSBoundParameters.Keys -notcontains '$nodeinfopath'){
+            $nodeinfopath = ([Environment]::GetEnvironmentVariable('nodeInfoPath','Machine').ToString())
+            if(!($nodeinfopath)) { $nodeinfopath = 'C:\Windows\Temp\nodeinfo.json' }
+      }
+   
+      $nodeinfo = Get-Content -Path $nodeinfopath -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
 
       if(!($DestinationQueue)){ $DestinationQueue =  "FormatName:DIRECT=HTTPS://",$nodeinfo.PullServerName,"/msmq/private$/rsdsc" -join '' }
       
@@ -27,11 +24,12 @@ Function Get-TargetResource {
 
 
    return @{
-      'Ensure' = $Ensure
+      'Name' = $Name
       'DestinationQueue' = $DestinationQueue
       'MessageLabel' = $MessageLabel
       'dsc_config' = $dsc_config
       'shared_key' = $shared_key
+      'nodeinfopath' = $nodeinfopath
       
    }
 }
@@ -41,19 +39,21 @@ Function Get-TargetResource {
 
 Function Test-TargetResource {
    param (
-      [ValidateSet("Present","Absent")]
-      [string] $Ensure,
+      [Parameter(Mandatory)][string] $Name,
       [string] $DestinationQueue,
       [string] $MessageLabel = 'execute',
       [string] $dsc_config,
-      [string] $shared_key
+      [string] $shared_key,
+      [string] $nodeinfopath
       )
 
-   $nodeinfo = Get-NodeInfo
+   if($PSBoundParameters.Keys -notcontains '$nodeinfopath'){
+            $nodeinfopath = ([Environment]::GetEnvironmentVariable('nodeInfoPath','Machine').ToString())
+            if(!($nodeinfopath)) { $nodeinfopath = 'C:\Windows\Temp\nodeinfo.json' }
+   }
+   
+   $nodeinfo = Get-Content -Path $nodeinfopath -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
 
-      if(!($DestinationQueue)){ $DestinationQueue =  "FormatName:DIRECT=HTTPS://",$nodeinfo.PullServerName,"/msmq/private$/rsdsc" -join '' }
-      
-      
 
    #Check if assigned DSC configuration or Shared Key has changed
    if($dsc_config){
@@ -94,17 +94,23 @@ Function Test-TargetResource {
 Function Set-TargetResource {
    
    param (
-      [ValidateSet("Present","Absent")]
-      [string] $Ensure,
+      [Parameter(Mandatory)][string] $Name,
       [string] $DestinationQueue,
       [string] $MessageLabel = 'execute',
       [string] $dsc_config,
-      [string] $shared_key
+      [string] $shared_key,
+      [string] $nodeinfopath
       )
    
-   $nodeinfo = Get-NodeInfo
-
    
+   if($PSBoundParameters.Keys -notcontains '$nodeinfopath'){
+            $nodeinfopath = ([Environment]::GetEnvironmentVariable('nodeInfoPath','Machine').ToString())
+            if(!($nodeinfopath)) { $nodeinfopath = 'C:\Windows\Temp\nodeinfo.json' }
+   }
+   
+   $nodeinfo = Get-Content -Path $nodeinfopath -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
+   
+
    if($dsc_config){
         $nodeinfo.dsc_config = $dsc_config
    }
@@ -132,12 +138,15 @@ Function Set-TargetResource {
     }
 
 
-    
-    $nodeinfo.NetworkAdapters = $network_adapters
-
+    if($nodeinfo.NetworkAdapters){
+        $nodeinfo.NetworkAdapters = $network_adapters
+    }
+    else{
+        Add-Member -InputObject $nodeinfo -MemberType NoteProperty -Name 'NetworkAdapters' -Value $network_adapters
+    }
     #update bootstrapinfo on disk
    
-    Set-Content -Path $NodeInfo -Value ($nodeinfo | ConvertTo-Json -Depth 2)
+    Set-Content -Path $nodeinfopath -Value ($nodeinfo | ConvertTo-Json -Depth 2)
 
 
 
