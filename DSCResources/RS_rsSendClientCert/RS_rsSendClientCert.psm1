@@ -70,7 +70,7 @@ Function Test-TargetResource {
         }
    }
 
-   
+   <#
    #Check if PullServer has Client MOF available
    $uri = (("https://",$nodeinfo.PullServerName,":",$nodeinfo.PullServerPort,"/PSDSCPullServer.svc/Action(ConfigurationId='",$nodeinfo.uuid,"')/ConfigurationContent") -join '')
    try{
@@ -86,6 +86,8 @@ Function Test-TargetResource {
    
 
    return $true  
+    #>
+    return $false
 }
 
 
@@ -172,7 +174,7 @@ Function Set-TargetResource {
 
 
    #Send message, and then check for available MOF. Will retry Send 5 times if MOF not found, sleeping 30 seconds each
-
+   <#
    $uri = (("https://",$nodeinfo.PullServerName,":",$nodeinfo.PullServerPort,"/PSDSCPullServer.svc/Action(ConfigurationId='",$nodeinfo.uuid,"')/ConfigurationContent") -join '')
    
    $retries = 1 
@@ -194,7 +196,7 @@ Function Set-TargetResource {
    while($retries -le 5)
    
          
-  
+  #>
 }
 
 
