@@ -9,6 +9,8 @@ return $nodeinfo
 
 Function Get-TargetResource {
    param (
+      [parameter(Mandatory = $true)]
+      [string]$Name, 
       [ValidateSet("Present","Absent")]
       [string] $Ensure,
       [string] $DestinationQueue,
@@ -41,6 +43,8 @@ Function Get-TargetResource {
 
 Function Test-TargetResource {
    param (
+      [parameter(Mandatory = $true)]
+      [string]$Name,
       [ValidateSet("Present","Absent")]
       [string] $Ensure,
       [string] $DestinationQueue,
@@ -94,6 +98,8 @@ Function Test-TargetResource {
 Function Set-TargetResource {
    
    param (
+      [parameter(Mandatory = $true)]
+      [string]$Name,
       [ValidateSet("Present","Absent")]
       [string] $Ensure,
       [string] $DestinationQueue,
