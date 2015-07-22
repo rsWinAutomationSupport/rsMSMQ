@@ -173,23 +173,20 @@ Function Set-TargetResource {
 
    $uri = (("https://",$($nodeinfo.PullServerName),":",$($nodeinfo.PullServerPort),"/PSDSCPullServer.svc/Action(ConfigurationId='",$($nodeinfo.uuid),"')/ConfigurationContent") -join '')
    
-   $retries = 1 
+   $retries = 0
    do{
-        $queue.Send($msg)
+       $queue.Send($msg)
         $retries ++
-              try{
-                    if((Invoke-WebRequest $uri).StatusCode -ne '200'){
-                        Write-Verbose -Message "MOF retrieval resulted in non-200 HTTP status code. Retrying"
-                        Sleep 30
-                    }
-                    else{ $retries -eq 6 }
-                }
-                catch {}
-      Write-Verbose -Message "Sending MSMQ message to $DestinationQueue"
-                
-     }
-   
-   while($retries -le 5)
+        try{
+            if( (Invoke-WebRequest $uri).StatusCode -eq 200){
+                $retries = 10
+            }
+        }
+      catch {
+         Start-Sleep -Seconds 30
+         Write-Verbose -Message "Sending MSMQ message to $DestinationQueue"
+      }
+   } while($retries -lt 5)
    
          
   
