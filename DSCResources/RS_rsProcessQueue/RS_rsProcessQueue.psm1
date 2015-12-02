@@ -45,7 +45,8 @@ Function Set-TargetResource {
         [parameter(Mandatory = $true)][string]$queueName,
         [System.UInt32]$scavengeTime
     )
-    $d = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'secrets.json') -Raw | ConvertFrom-Json
+    $DSCSettingsFile = $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'DSCAutomationSettings.xml')
+    $SharedKey = (Get-DSCSettingValue -Path $DSCSettingsFile -Key "SharedKey").SharedKey
     [Reflection.Assembly]::LoadWithPartialName("System.Messaging") | Out-Null
     $q = New-Object System.Messaging.MessageQueue ".\private$\$queueName"
     $q.Formatter.TargetTypeNames = ,"System.String"    
@@ -55,7 +56,7 @@ Function Set-TargetResource {
         $msg = $msg.Body | ConvertFrom-Json
         $nodeRecord = @{'NodeName' = "$($msg.Name)";'uuid' = "$($msg.uuid)";'dsc_config' = "$($msg.dsc_config)";'NetworkAdapters' = "$($msg.NetworkAdapters)";'timeStamp' = "$timeStamp"}
 
-        if($d.Shared_key -eq $msg.shared_key) {
+        if($SharedKey -eq $msg.shared_key) {
             $nodesJson = Get-Content $(Join-Path ([Environment]::GetEnvironmentVariable('defaultPath','Machine')) 'nodes.json') -Raw | ConvertFrom-Json
             if($nodesJson.Nodes.uuid -notcontains $msg.uuid) {
                 $nodesJson.Nodes += $nodeRecord
